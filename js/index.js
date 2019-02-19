@@ -3,9 +3,9 @@ var defaultPagePath='app/pages/';
 var headerMsg = "Expenzing";
 //var urlPath = 'http://1.255.255.36:13130/TnEV1_0AWeb/WebService/Login/'
 //var WebServicePath ='http://1.255.255.184:8085/NexstepWebService/mobileLinkResolver.service';
-var WebServicePath = 'http://live.nexstepapps.com:8284/NexstepWebService/mobileLinkResolver.service';
+//var WebServicePath = 'http://live.nexstepapps.com:8284/NexstepWebService/mobileLinkResolver.service';
 //var WebServicePath ='http://1.255.255.36:9898/NexstepWebService/mobileLinkResolver.service';
-//var WebServicePath ='http://1.255.255.197:8082/NexstepWebService/mobileLinkResolver.service';
+var WebServicePath ='http://1.255.255.99:8085/NexstepWebService/mobileLinkResolver.service';
 var clickedFlagCar = false;
 var clickedFlagTicket = false;
 var clickedFlagHotel = false;
@@ -34,6 +34,9 @@ var smsToExpenseStr = "" ;
 var smsWatchFlagStatus = false;
 var expensePageFlag = '';		//S for smsExpenses And N for normal expenses
 var filtersStr = "";
+var secretKey = "NexStepPrivacy@#";
+var keyToSend;
+var passToSend;
 j(document).ready(function(){ 
 document.addEventListener("deviceready",loaded,false);
 });
@@ -46,19 +49,21 @@ function login()
 		var userName = document.getElementById("userNameId");
 	}
 	var password = document.getElementById("pass");
-    
     var jsonToBeSend=new Object();
     jsonToBeSend["user"] = userName.value;
     jsonToBeSend["pass"] = password.value;
+    jsonToBeSendEncrypted = encryptDataForLogin(jsonToBeSend,secretKey);
+    keyToSend =encryptDataForJSON(jsonToBeSend["user"]);
+	passToSend = encryptDataForJSON(jsonToBeSend["pass"]);
 	//setUrlPathLocalStorage(urlPath);
 	urlPath=window.localStorage.getItem("urlPath");
 	j('#loading').show();
     j.ajax({
-         url: urlPath+"LoginWebService",
+         url: urlPath+"LoginWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
          type: 'POST',
          dataType: 'json',
          crossDomain: true,
-         data: JSON.stringify(jsonToBeSend),
+         data: JSON.stringify(jsonToBeSendEncrypted),
          success: function(data) {
          	if (data.Status == 'Success'){
                 
@@ -132,10 +137,12 @@ function commanLogin(){
  	var userNameValue = userName.value; 
  	var domainName = userNameValue.split('@')[1];
 	 var jsonToDomainNameSend = new Object();
+	 var jsonToDomainNameSendEncrypted = new Object();
 	jsonToDomainNameSend["userName"] = domainName;
-	jsonToDomainNameSend["mobilePlatform"] = device.platform;
-	//jsonToDomainNameSend["mobilePlatform"] = "Android";
+	//jsonToDomainNameSend["mobilePlatform"] = device.platform;
+	jsonToDomainNameSend["mobilePlatform"] = "Android";
 	jsonToDomainNameSend["appType"] = "NEXGEN_EXPENZING_TNE_APP";
+	jsonToDomainNameSendEncrypted = encryptDataForUrl(jsonToDomainNameSend,secretKey);
   	//var res=JSON.stringify(jsonToDomainNameSend);
 	var requestPath = WebServicePath;
 	j.ajax({
@@ -144,7 +151,7 @@ function commanLogin(){
          contentType : "application/json",
          dataType: 'json',
          crossDomain: true,
-         data: JSON.stringify(jsonToDomainNameSend),
+         data: JSON.stringify(jsonToDomainNameSendEncrypted),
 		 success: function(data) {
          	if (data.status == 'Success'){
          		urlPath = data.message;
@@ -332,7 +339,7 @@ function saveBusinessExpDetails(jsonBEArr,busExpDetailsArr){
      var pageRefFailure=defaultPagePath+'failure.html';
 	 j('#loading_Cat').show();
 	 j.ajax({
-				  url: window.localStorage.getItem("urlPath")+"BusExpService",
+				  url: window.localStorage.getItem("urlPath")+"BusExpService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 				  type: 'POST',
 				  dataType: 'json',
 				  crossDomain: true,
@@ -378,7 +385,7 @@ function saveTravelSettleExpDetails(jsonTSArr,tsExpDetailsArr){
      var pageRefSuccess=defaultPagePath+'success.html';
      var pageRefFailure=defaultPagePath+'failure.html';
 	j.ajax({
-				  url: window.localStorage.getItem("urlPath")+"SyncSettlementExpensesWebService",
+				  url: window.localStorage.getItem("urlPath")+"SyncSettlementExpensesWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 				  type: 'POST',
 				  dataType: 'json',
 				  crossDomain: true,
@@ -434,7 +441,7 @@ function callSendForApprovalServiceForBE(jsonToSaveBE,busExpDetailsArr,pageRefSu
 j('#loading_Cat').show();
 var headerBackBtn=defaultPagePath+'backbtnPage.html';
 j.ajax({
-				  url: window.localStorage.getItem("urlPath")+"SynchSubmitBusinessExpense",
+				 url: window.localStorage.getItem("urlPath")+"SynchSubmitBusinessExpense?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 				  type: 'POST',
 				  dataType: 'json',
 				  crossDomain: true,
@@ -992,7 +999,7 @@ function saveTravelRequestAjax(jsonToSaveTR){
      var pageRefFailure=defaultPagePath+'failure.html';
     j('#loading_Cat').show();    
 	 j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"SyncTravelRequestDetail",
+			 url: window.localStorage.getItem("urlPath")+"SyncTravelRequestDetail?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -1306,24 +1313,24 @@ function onloadTimePicker(){
 function setPerUnitDetails(transaction, results){
  		 
 	if(results!=null){
-		    var row = results.rows.item(0);
-		    perUnitDetailsJSON["expenseIsfromAndToReqd"]=row.expIsFromToReq;
-		    perUnitDetailsJSON["isUnitReqd"]=row.expIsUnitReq;
-		    perUnitDetailsJSON["expRatePerUnit"]=row.expRatePerUnit;
-		    perUnitDetailsJSON["expFixedOrVariable"]=row.expFixedOrVariable;
-		    perUnitDetailsJSON["expFixedLimitAmt"]=row.expFixedLimitAmt;
-		    perUnitDetailsJSON["expenseName"]=row.expName;
-			perUnitDetailsJSON["expPerUnitActiveInative"]=row.expPerUnitActiveInative;
-			perUnitDetailsJSON["isErReqd"]=row.isErReqd;
-			perUnitDetailsJSON["limitAmountForER"]=row.limitAmountForER;
-		    document.getElementById("ratePerUnit").value = row.expRatePerUnit;
-		    document.getElementById("expAmt").value="";
-		    document.getElementById("expUnit").value="";
-			document.getElementById("expFromLoc").value = "";
-			document.getElementById("expToLoc").value = "";
-			document.getElementById("expNarration").value = "";
-			document.getElementById("expUnit").value = "";
-			document.getElementById("expAmt").value = "";
+		 		var row = results.rows.item(0);
+				perUnitDetailsJSON["expenseIsfromAndToReqd"]=row.expIsFromToReq;
+				perUnitDetailsJSON["isUnitReqd"]=row.expIsUnitReq;
+				perUnitDetailsJSON["expRatePerUnit"]=decryptData(row.expRatePerUnit,secretKey);
+				perUnitDetailsJSON["expFixedOrVariable"]=row.expFixedOrVariable;
+				perUnitDetailsJSON["expFixedLimitAmt"]=decryptData(row.expFixedLimitAmt,secretKey);
+				perUnitDetailsJSON["expenseName"]=row.expName;
+				perUnitDetailsJSON["expPerUnitActiveInative"]=decryptData(row.expPerUnitActiveInative,secretKey);
+				perUnitDetailsJSON["isErReqd"]=row.isErReqd;
+				perUnitDetailsJSON["limitAmountForER"]=decryptData(row.limitAmountForER,secretKey);
+				document.getElementById("ratePerUnit").value = decryptData(row.expRatePerUnit,secretKey);
+		        document.getElementById("expAmt").value="";
+		        document.getElementById("expUnit").value="";
+			    document.getElementById("expFromLoc").value = "";
+			    document.getElementById("expToLoc").value = "";
+			    document.getElementById("expNarration").value = "";
+			    document.getElementById("expUnit").value = "";
+			    document.getElementById("expAmt").value = "";
 		    if(perUnitDetailsJSON.expenseIsfromAndToReqd=='N'){
 				document.getElementById("expFromLoc").value="";
 				document.getElementById("expToLoc").value="";
@@ -1770,7 +1777,10 @@ alert(window.lang.translate('Tap and select Expenses to send for Approval with s
 								  jsonFindBE["narration"] = j(this).find('td.expNarration1').text();
 
 								  jsonFindBE["isErReqd"] = j(this).find('td.isErReqd').text();
-								  jsonFindBE["ERLimitAmt"] = j(this).find('td.ERLimitAmt').text();
+								 
+								  var beEncryptedERLimitAmt = j(this).find('td.ERLimitAmt').text();
+							  	  var ERLimitAmtForJSON = decryptData(beEncryptedERLimitAmt,secretKey);
+							  	 jsonFindBE["ERLimitAmt"] = encryptDataForJSON(ERLimitAmtForJSON);
 
 								  jsonFindBE["perUnitException"] = j(this).find('td.isEntitlementExceeded').text();
 
@@ -1780,7 +1790,9 @@ alert(window.lang.translate('Tap and select Expenses to send for Approval with s
 								  
 								  jsonFindBE["wayPoint"] = j(this).find('td.wayPoint').text();
 								
-								  jsonFindBE["amount"] = j(this).find('td.expAmt1').text();
+								 var amtToDecryptWithoutAdv = j(this).find('td.expAmt1').text();
+							  	 var decryptedAmtWithoutAdv = decryptData(amtToDecryptWithoutAdv,secretKey);
+							     jsonFindBE["amount"]	= encryptDataForJSON(decryptedAmtWithoutAdv,secretKey);
 								  jsonFindBE["currencyId"] = j(this).find('td.currencyId').text();
 
 								  var dataURL =  j(this).find('td.busAttachment').text();
@@ -1858,7 +1870,9 @@ alert(window.lang.translate('Tap and select Expenses to send for Approval with s
 							  jsonFindBE["units"] = j(this).find('td.expUnit').text();
 						  }
 						  jsonFindBE["wayPoint"] = j(this).find('td.wayPoint').text();
-						  jsonFindBE["amount"] = j(this).find('td.expAmt1').text();
+						  var amtEncrypted = j(this).find('td.expAmt1').text();
+ 						  var amtDecrypted	= decryptData(amtEncrypted,secretKey);
+ 						  jsonFindBE["amount"] = encryptDataForJSON(amtDecrypted);
 						  jsonFindBE["currencyId"] = j(this).find('td.currencyId').text();
 						  jsonFindBE["perUnitException"] = j(this).find('td.isEntitlementExceeded').text();
 
@@ -1917,7 +1931,9 @@ function oprationONTravelSettlementExp(){
 					jsonFindTS["isModeCategory"] = j(this).find('td.isModeCategory').text();
 					jsonFindTS["narration"] = j(this).find('td.expNarration1').text();
 					jsonFindTS["units"] = j(this).find('td.expUnit').text();
-					jsonFindTS["amount"] = j(this).find('td.expAmt1').text();
+					var travelAmtEncrypted =j(this).find('td.expAmt1').text();
+			        var amtForJSON = decryptData(travelAmtEncrypted,secretKey);
+			        jsonFindTS["amount"] = encryptDataForJSON(amtForJSON,secretKey);
 					jsonFindTS["currencyId"] = j(this).find('td.currencyId').text();
 					
 					var dataURL =  j(this).find('td.tsExpAttachment').text();
@@ -2066,7 +2082,7 @@ function resetImageData(){
 		 j('#loading_Cat').show();
 		 for(i; i<jsonWalletArr.length; i++ ){
 			 j.ajax({
-					  url: window.localStorage.getItem("urlPath")+"WalletReceiptsService",
+					 url: window.localStorage.getItem("urlPath")+"WalletReceiptsService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 					  type: 'POST',
 					  dataType: 'json',
 					  crossDomain: true,
@@ -2167,9 +2183,11 @@ function validateValidMobileUser(){
 	if(window.localStorage.getItem("EmployeeId")!= null
 		&& (window.localStorage.getItem("UserStatus")==null || window.localStorage.getItem("UserStatus")=='Valid')){
 		jsonToBeSend["user"]=window.localStorage.getItem("UserName");
-		jsonToBeSend["pass"]=window.localStorage.getItem("Password");
+	var pwdEncrypted = window.localStorage.getItem("Password");
+  	var pwdForJSON = decryptData(pwdEncrypted,secretKey);
+  	jsonToBeSend["pass"]=encryptDataForJSON(pwdForJSON);
 		j.ajax({
-	         url:  window.localStorage.getItem("urlPath")+"ValidateUserWebservice",
+  		url:  window.localStorage.getItem("urlPath")+"ValidateUserWebservice?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 	         type: 'POST',
 	         dataType: 'json',
 	         crossDomain: true,
@@ -2505,7 +2523,8 @@ function syncSubmitEmpAdvance(){
 		 jsonToSaveEA["empAdvDate"] = empAdvDate;
 		 jsonToSaveEA["empAdvTitle"] = empAdvTitle;
 		 jsonToSaveEA["empAdvjustification"] = empAdvjustification;
-		 jsonToSaveEA["empAdvAmount"] = empAdvAmount;
+		 var encryptedAdvAmt = encryptDataForJSON(empAdvAmount);
+		 jsonToSaveEA["empAdvAmount"] = encryptedAdvAmt;
 		 jsonToSaveEA["empAdvType_id"] = empAdvType_id;
 		 jsonToSaveEA["empAccHead_id"] = empAccHead_id;
 		 
@@ -2523,7 +2542,7 @@ function saveEmployeeAdvanceAjax(jsonToSaveEA){
      var pageRefSuccess=defaultPagePath+'success.html';
      var pageRefFailure=defaultPagePath+'failure.html';
 	 j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"SyncSubmitEmployeeAdvanceDetail",
+		url: window.localStorage.getItem("urlPath")+"SyncSubmitEmployeeAdvanceDetail?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -2645,24 +2664,25 @@ function hideEmployeeAdvance(){
 }
 
 function populateBEAmount(){
-                        var BEAmount = 0;
-                        var convAmount = 0;
-                          if(j("#source tr.selected").hasClass("selected")){
-                              j("#source tr.selected").each(function(index, row) {
-                                  var Amount = j(this).find('td.expAmt1').text();
-                                  
-                                  var convRate = j(this).find('td.conversionRate').text();
+	var BEAmount = 0;
+	var convAmount = 0;
+	if(j("#source tr.selected").hasClass("selected")){
+		j("#source tr.selected").each(function(index, row) {
+			var amtToDecrypt = j(this).find('td.expAmt1').text();
+			var Amount	= decryptData(amtToDecrypt,secretKey);
+			var convRateToDecrypt = j(this).find('td.conversionRate').text();
+			var convRate	= decryptData(convRateToDecrypt,secretKey);
                                   //get Amount 
                                   convAmount = parseFloat(Amount) * parseFloat(Math.round(convRate * 100) / 100);
-                                   BEAmount =parseFloat(BEAmount) + parseFloat(Math.round(convAmount * 100) / 100);
+                                  BEAmount =parseFloat(BEAmount) + parseFloat(Math.round(convAmount * 100) / 100);
                               });
 
-                            if(BEAmount!= "" ){
-                                 document.getElementById("totalAmount").value = BEAmount;
-                              }
-                          }else{
-                             document.getElementById("totalAmount").value = "";
-                          }   
+		if(BEAmount!= "" ){
+			document.getElementById("totalAmount").value = BEAmount;
+		}
+	}else{
+		document.getElementById("totalAmount").value = "";
+	}   
 }
 
 
@@ -2778,7 +2798,9 @@ function submitBEWithEA(){
 								  jsonFindBE["narration"] = j(this).find('td.expNarration1').text();
 
 								  jsonFindBE["isErReqd"] = j(this).find('td.isErReqd').text();
-								  jsonFindBE["ERLimitAmt"] = j(this).find('td.ERLimitAmt').text();
+								 var beEncryptedERLimitAmt = j(this).find('td.ERLimitAmt').text();
+							  	 var ERLimitAmtForJSON = decryptData(beEncryptedERLimitAmt,secretKey);
+							  	 jsonFindBE["ERLimitAmt"] = encryptDataForJSON(ERLimitAmtForJSON);
 
 								  jsonFindBE["perUnitException"] = j(this).find('td.isEntitlementExceeded').text();
 
@@ -2788,7 +2810,9 @@ function submitBEWithEA(){
 								  
 								  jsonFindBE["wayPoint"] = j(this).find('td.wayPoint').text();
 								
-								  jsonFindBE["amount"] = j(this).find('td.expAmt1').text();
+								var beEncryptedAmt = j(this).find('td.expAmt1').text();
+							  	var amountForJSON = decryptData(beEncryptedAmt,secretKey);
+							  	 jsonFindBE["amount"] = encryptDataForJSON(amountForJSON);
 								  jsonFindBE["currencyId"] = j(this).find('td.currencyId').text();
 
 								  var dataURL =  j(this).find('td.busAttachment').text();
@@ -2814,7 +2838,8 @@ function submitBEWithEA(){
 				            jsonFindEA["empAdvID"] = j(this).find('td.empAdvID').text();
                             jsonFindEA["emplAdvVoucherNo"] = j(this).find('td.emplAdvVoucherNo').text();
                             jsonFindEA["empAdvTitle"] = j(this).find('td.empAdvTitle').text();
-                            jsonFindEA["Amount"] = j(this).find('td.Amount').text();
+                             var advEncryptedAmt = j(this).find('td.Amount').text();
+			                jsonFindEA["Amount"] = encryptDataForJSON(advEncryptedAmt);
                             emplAdvanceDetailsArr.push(j(this).find('td.empAdvID').text());
                             jsonEmplAdvanceArr.push(jsonFindEA);
 						    });
@@ -2844,10 +2869,14 @@ function sendForApprovalBusinessDetailsWithEa(jsonBEArr,jsonEAArr,busExpDetailsA
     
 	 jsonToSaveBE["employeeId"] = window.localStorage.getItem("EmployeeId");
 	 jsonToSaveBE["expenseDetails"] = jsonBEArr;
-     jsonToSaveBE["totalAmount"] = totalAmount;
-     jsonToSaveBE["unsetAdvAmount"] = unsetAdvAmount;
-     jsonToSaveBE["refundToEmp"] = refundToEmp;
-     jsonToSaveBE["recoverFromEmp"] = recoverFromEmp;
+     var encryptedTotalAmount = encryptDataForJSON(totalAmount);
+	 jsonToSaveBE["totalAmount"] = encryptedTotalAmount;
+	 var encryptedUnsetAdvAmount = encryptDataForJSON(unsetAdvAmount);
+	 jsonToSaveBE["unsetAdvAmount"] = encryptedUnsetAdvAmount;
+	 var encryptedRefundToEmp = encryptDataForJSON(refundToEmp);
+	 jsonToSaveBE["refundToEmp"] = encryptedRefundToEmp;
+	 var encryptedRecoverFromEmp = encryptDataForJSON(recoverFromEmp);
+	 jsonToSaveBE["recoverFromEmp"] = encryptedRecoverFromEmp;
      jsonToSaveBE["employeeAdvDeatils"] = jsonEAArr;
 	 jsonToSaveBE["startDate"]=expenseClaimDates.minInStringFormat;
 	 jsonToSaveBE["endDate"]=expenseClaimDates.maxInStringFormat;
@@ -2867,7 +2896,7 @@ function callSendForApprovalServiceForBEwithEA(jsonToSaveBE,busExpDetailsArr,emp
 j('#loading_Cat').show();
 var headerBackBtn=defaultPagePath+'backbtnPage.html';
 j.ajax({
-				  url: window.localStorage.getItem("urlPath")+"SynchSubmitBusinessExpense",
+		url: window.localStorage.getItem("urlPath")+"SynchSubmitBusinessExpense?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 				  type: 'POST',
 				  dataType: 'json',
 				  crossDomain: true,

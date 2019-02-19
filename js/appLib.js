@@ -225,9 +225,11 @@ function saveBusinessDetails(status){
 		  	file="";
 			}
 			
+				//-----------------******************---TO ENCRYPT----exp_amt--------------//
+	      var encrypted_amt = encryptData(exp_amt,secretKey);
 		  mydb.transaction(function (t) {
 				t.executeSql("INSERT INTO businessExpDetails (expDate, accHeadId,expNameId,expFromLoc, expToLoc, expNarration, expUnit,expAmt,currencyId,isEntitlementExceeded,busExpAttachment,wayPointunitValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-											[exp_date,acc_head_id,exp_name_id,exp_from_loc, exp_to_loc,exp_narration,exp_unit,exp_amt,currency_id,entitlement_exceeded,file,way_points]);
+											[exp_date,acc_head_id,exp_name_id,exp_from_loc, exp_to_loc,exp_narration,exp_unit,encrypted_amt,currency_id,entitlement_exceeded,file,way_points]);
 								
 				if(status == "0"){
 				
@@ -343,9 +345,11 @@ function saveTravelSettleDetails(status){
 		  if(file==undefined){
 		   file="";
 		  }
+
+		  var travelAmtEncrypted = encryptData(exp_amt,secretKey);
 		  mydb.transaction(function (t) {
 				t.executeSql("INSERT INTO travelSettleExpDetails  (expDate, travelRequestId,expNameId,expNarration, expUnit,expAmt,currencyId,travelModeId,travelCategoryId,cityTownId,tsExpAttachment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-											[exp_date,travelRequestId,exp_name_id,exp_narration,exp_unit,exp_amt,currency_id,travelMode_id,travelCategory_id,cityTown_id,file]);
+											[exp_date,travelRequestId,exp_name_id,exp_narration,exp_unit,travelAmtEncrypted,currency_id,travelMode_id,travelCategory_id,cityTown_id,file]);
 								
 				if(status == "0"){
 					document.getElementById('expDate').value ="";
@@ -451,11 +455,12 @@ function fetchExpenseClaim() {
                     j('<td></td>').attr({ class: ["expNarration"].join(' ') }).html('<p style="color: black;">'+row.expNarration+'</br>'+row.expFromLoc+""+row.expToLoc+ '</P>').appendTo(rowss);
                     }
 				}
-				
+
+				var expAmount = decryptData(row.expAmt,secretKey);
 				if(row.busExpAttachment.length == 0){
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss); 	
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P>').appendTo(rowss); 	
 				}else{
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
 				}
 				j('<td></td>').attr({ class: ["expDate1","displayNone"].join(' ') }).text(row.expDate).appendTo(rowss);
 				j('<td></td>').attr({ class: ["expFromLoc1","displayNone"].join(' ') }).text(row.expFromLoc).appendTo(rowss);
@@ -547,7 +552,8 @@ function fetchExpenseClaim() {
               j('<td></td>').attr({ class: ["expDate"].join(' ') }).html('<p style="color: black;">'+newDateFormat+'</P>').appendTo(rowss);	
 		       j('<td></td>').attr({ class: ["expenseName"].join(' ') }).html('<p style="color: black;">'+row.expenseName+'</P>').appendTo(rowss).appendTo(rowss);
 		
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss);
+		        var travelAmtDecrypted = decryptData(row.expAmt,secretKey);
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+travelAmtDecrypted+' '+row.currencyName+'</P>').appendTo(rowss);
 				j('<td></td>').attr({ class: ["cityTownName"].join(' ') }).html('<p style="color: black;">'+row.cityTownName+'</P>').appendTo(rowss);
 				
 				if(row.tsExpAttachment.length == 0){
@@ -606,7 +612,7 @@ function synchronizeBEMasterData() {
 	j('#loading_Cat').show();
 	if (mydb) {
 		j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"SyncAccountHeadWebService",
+			  url: window.localStorage.getItem("urlPath")+"SyncAccountHeadWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -662,33 +668,35 @@ function synchronizeBEMasterData() {
 									exp_is_unit_req = 'N';
 								}
 								
-								if(typeof stateArr.RatePerUnit != 'undefined') {
-									exp_per_unit = stateArr.RatePerUnit;
+								if(typeof stateArr.RatePerUnit != 'undefined') {							
+									exp_per_unit = encryptData(stateArr.RatePerUnit.toString(),secretKey);
 								}else{
-									exp_per_unit = 0.0;
+									exp_per_unit = encryptData(0.0,secretKey);						
 								}
 								
 								if(typeof stateArr.ActiveInactive != 'undefined') {
-									exp_per_unit_active_inactive = stateArr.ActiveInactive;
+									exp_per_unit_active_inactive = encryptData(stateArr.ActiveInactive.toString(),secretKey);
 								}else{
-									exp_per_unit_active_inactive = 0;
+									exp_per_unit_active_inactive = encryptData(0,secretKey);
 								}
 							
 								if(typeof stateArr.FixedLimitAmount != 'undefined') {
-									exp_fixed_limit_amt = stateArr.FixedLimitAmount;
+									exp_fixed_limit_amt = encryptData(stateArr.FixedLimitAmount.toString(),secretKey);
 								}else{
-									exp_fixed_limit_amt = 0.0;
+									exp_fixed_limit_amt = encryptData(0.0,secretKey);
 								}
+
 								if(typeof stateArr.IsErReqd != 'undefined') {
 									isErReqd = stateArr.IsErReqd;
 								}else{
 									isErReqd = 'N';
 								}
+
 								if(typeof stateArr.LimitAmountForER != 'undefined') {
-									limitAmountForER = stateArr.LimitAmountForER;
+									limitAmountForER = encryptData(stateArr.LimitAmountForER.toString(),secretKey);
 								}else{
-									limitAmountForER = 0.0;
-								}
+									limitAmountForER = encryptData(0.0,secretKey);
+								}	
 								//console.log("exp_id:"+exp_id+"  -exp_name:"+exp_name+"  -exp_is_from_to_req:"+exp_is_from_to_req+"  -acc_code_id:"+acc_code_id+"  -acc_head_id:"+acc_head_id+"  -exp_is_unit_req:"+exp_is_unit_req+"  -exp_per_unit:"+exp_per_unit+"  -exp_fixed_or_var:"+exp_fixed_or_var+"  -exp_fixed_limit_amt:"+exp_fixed_limit_amt)										
 								t.executeSql("INSERT INTO expNameMst ( expNameMstId,expName, expIsFromToReq , accCodeId , accHeadId , expIsUnitReq , expRatePerUnit, expFixedOrVariable , expFixedLimitAmt,expPerUnitActiveInative,isErReqd,limitAmountForER) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?)", [exp_id,exp_name,exp_is_from_to_req, acc_code_id,acc_head_id,exp_is_unit_req,exp_per_unit,exp_fixed_or_var,exp_fixed_limit_amt,exp_per_unit_active_inactive,isErReqd,limitAmountForER]);
 							}
@@ -705,7 +713,7 @@ function synchronizeBEMasterData() {
 								var currencyCovId = stateArr.currencyCovId;
 								var currencyId = stateArr.currencyId;
                                 var defaultcurrencyId = stateArr.defaultcurrencyId;
-                                var conversionRate = stateArr.conversionRate;
+                               	var conversionRate = encryptData(stateArr.conversionRate.toString(),secretKey);
 								t.executeSql("INSERT INTO currencyConversionMst (currencyCovId,currencyId,defaultcurrencyId,conversionRate) VALUES (?, ?, ?, ?)", [currencyCovId,currencyId,defaultcurrencyId,conversionRate]);
 								
 							}
@@ -732,7 +740,7 @@ function synchronizeBEMasterData() {
 			});
 			
 		j.ajax({
-		  url: window.localStorage.getItem("urlPath")+"CurrencyService",
+		 url: window.localStorage.getItem("urlPath")+"CurrencyService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 		  type: 'POST',
 		  dataType: 'json',
 		  crossDomain: true,
@@ -790,7 +798,7 @@ function synchronizeBEMasterData() {
 	
 	if (mydb) {
 		j.ajax({
-		  url: window.localStorage.getItem("urlPath")+"SyncTravelAccountHeadWebService",
+		 url: window.localStorage.getItem("urlPath")+"SyncTravelAccountHeadWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 		  type: 'POST',
 		  dataType: 'json',
 		  crossDomain: true,
@@ -843,7 +851,7 @@ function synchronizeBEMasterData() {
 		});
 		
 		j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"CurrencyService",
+			  url: window.localStorage.getItem("urlPath")+"CurrencyService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -882,7 +890,7 @@ function synchronizeBEMasterData() {
 					});	
 		
 		j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"SyncTravelMaster",
+			  url: window.localStorage.getItem("urlPath")+"SyncTravelMaster?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -1169,7 +1177,9 @@ function setUserSessionDetails(val,userJSON){
     } 
     //End
 	 window.localStorage.setItem("UserName",userJSON["user"]);
-	 window.localStorage.setItem("Password",userJSON["pass"]);
+
+	 var encryptedPass = encryptData(userJSON["pass"],secretKey);
+     window.localStorage.setItem("Password",encryptedPass);
      window.localStorage.setItem("localLanguage",0);
 	
 }
@@ -1471,7 +1481,7 @@ function synchronizeTRForTS() {
 	j('#loading_Cat').show();
 	if (mydb) {
  		j.ajax({
-			url: window.localStorage.getItem("urlPath")+"FetchTRForTSWebService",
+			url: window.localStorage.getItem("urlPath")+"FetchTRForTSWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			type: 'POST',
 			dataType: 'json',
 			crossDomain: true,
@@ -1599,7 +1609,7 @@ function synchronizeEAMasterData() {
 	j('#loading_Cat').show();
 	if (mydb) {
 		j.ajax({
-			  url: window.localStorage.getItem("urlPath")+"SyncAccountHeadEAWebService",
+			url: window.localStorage.getItem("urlPath")+"SyncAccountHeadEAWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
 			  type: 'POST',
 			  dataType: 'json',
 			  crossDomain: true,
@@ -1645,10 +1655,11 @@ function synchronizeEAMasterData() {
 								var empAdvId = stateArr.Value;
 								var empAdvVoucherNo = stateArr.EmpAdvaucherNo;
                                 var empAdvTitle = stateArr.VoucherTitle;
-                                var empAdvAmount = stateArr.Amount;
+                                var empAdvAmountToEncrypt = stateArr.Amount;
+								var amount = encryptData(empAdvAmountToEncrypt,secretKey);
 													
 								t.executeSql("INSERT INTO employeeAdvanceDetails (empAdvID,emplAdvVoucherNo,empAdvTitle,Amount) VALUES ( ?, ?, ?, ?)", 
-                                [empAdvId,empAdvVoucherNo,empAdvTitle,empAdvAmount]);
+                                [empAdvId,empAdvVoucherNo,empAdvTitle,amount]);
 							}
 						}  
 					});
@@ -1813,10 +1824,11 @@ function fetchEmployeeAdvance() {
 
 				}
 				
+				var expAmount = decryptData(row.expAmt,secretKey);
 				if(row.busExpAttachment.length == 0){
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss); 	
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P>').appendTo(rowss); 	
 				}else{
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
 				}
 				j('<td></td>').attr({ class: ["expDate1","displayNone"].join(' ') }).text(row.expDate).appendTo(rowss);
 				j('<td></td>').attr({ class: ["expFromLoc1","displayNone"].join(' ') }).text(row.expFromLoc).appendTo(rowss);
@@ -1883,11 +1895,13 @@ function fetchEmployeeAdvance() {
 		
 				var rowss = j('<tr></tr>').attr({ class: ["test"].join(' ') }).appendTo(rowThead1);
 		
+				var amountDecrypted = decryptData(row.Amount,secretKey);
+
               j('<td></td>').attr({ class: ["empAdvID","displayNone"].join(' ') }).text(row.empAdvID).appendTo(rowss);
 		      j('<td></td>').attr({ class: ["emplAdvVoucherNo"].join(' ')
                                   }).text(row.emplAdvVoucherNo).appendTo(rowss);	
               j('<td></td>').attr({ class: ["empAdvTitle","displayNone"].join(' ') }).text(row.empAdvTitle).appendTo(rowss);
-              j('<td></td>').attr({ class: ["Amount"].join(' ') }).text(row.Amount).appendTo(rowss);
+              j('<td></td>').attr({ class: ["Amount"].join(' ') }).text(amountDecrypted).appendTo(rowss);
             }
               $("#header tr").click(function() {
                  $("tr").attr('onclick', '');
@@ -1987,10 +2001,12 @@ function fetchBusinessExpNdEmployeeAdv() {
                     }
 				}
 				
+				//------------------------------***********************--------------------------------//
+                var expAmount = decryptData(row.expAmt,secretKey);
 				if(row.busExpAttachment.length == 0){
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss); 	
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+expAmount+' '+row.currencyName+'</P>').appendTo(rowss); 	
 				}else{
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+row.expAmt+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+expAmount+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
 				}
 				j('<td></td>').attr({ class: ["expDate1","displayNone"].join(' ') }).text(row.expDate).appendTo(rowss);
 				j('<td></td>').attr({ class: ["expFromLoc1","displayNone"].join(' ') }).text(row.expFromLoc).appendTo(rowss);
@@ -2056,11 +2072,13 @@ function fetchBusinessExpNdEmployeeAdv() {
 		
 				var rowss = j('<tr></tr>').attr({ class: ["test"].join(' ') }).appendTo(rowThead1);
 		
+							//-----------------------------------************--------------------//		
+				var amountDecrypted = decryptData(row.Amount,secretKey);
               j('<td></td>').attr({ class: ["empAdvID","displayNone"].join(' ') }).text(row.empAdvID).appendTo(rowss);
 		      j('<td></td>').attr({ class: ["emplAdvVoucherNo"].join(' ')
                                   }).text(row.emplAdvVoucherNo).appendTo(rowss);	
               j('<td></td>').attr({ class: ["empAdvTitle","displayNone"].join(' ') }).text(row.empAdvTitle).appendTo(rowss);
-              j('<td></td>').attr({ class: ["Amount"].join(' ') }).text(row.Amount).appendTo(rowss);
+              j('<td></td>').attr({ class: ["Amount"].join(' ') }).text(amountDecrypted).appendTo(rowss);
             }
               $("#header tr").click(function() {
                  $("tr").attr('onclick', '');
@@ -2143,11 +2161,11 @@ function fetchExpenseClaimFromMain() {
                     j('<td></td>').attr({ class: ["expNarration"].join(' ') }).html('<p style="color: black;">'+row.expNarration+'</br>'+row.expFromLoc+""+row.expToLoc+ '</P>').appendTo(rowss);
                     }
 				}
-				
+				var expAmount = decryptData(row.expAmt,secretKey);
 				if(row.busExpAttachment.length == 0){
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss); 	
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P>').appendTo(rowss); 	
 				}else{
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+row.expAmt+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p style="color: black;">'+expAmount+' '+row.currencyName+'</P><img src="images/attach.png" width="25px" height="25px">').appendTo(rowss); 
 				}
 				j('<td></td>').attr({ class: ["expDate1","displayNone"].join(' ') }).text(row.expDate).appendTo(rowss);
 				j('<td></td>').attr({ class: ["expFromLoc1","displayNone"].join(' ') }).text(row.expFromLoc).appendTo(rowss);
@@ -2222,7 +2240,8 @@ function fetchTravelSettlementExpFromMain() {
                 
                 j('<td></td>').attr({ class: ["expDate"].join(' ') }).html('<p style="color: black;">'+newDateFormat+'</P>').appendTo(rowss);	
 		        j('<td></td>').attr({ class: ["expenseName"].join(' ') }).html('<p style="color: black;">'+row.expenseName+'</P>').appendTo(rowss).appendTo(rowss);	
-				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+row.expAmt+' '+row.currencyName+'</P>').appendTo(rowss);
+		        var travelAmtDecrypted = decryptData(row.expAmt,secretKey);
+				j('<td></td>').attr({ class: ["expAmt"].join(' ') }).html('<p>'+travelAmtDecrypted+' '+row.currencyName+'</P>').appendTo(rowss);
 				j('<td></td>').attr({ class: ["cityTownName"].join(' ') }).html('<p style="color: black;">'+row.cityTownName+'</P>').appendTo(rowss);
 				
 				if(row.tsExpAttachment.length == 0){
@@ -2325,7 +2344,8 @@ function fetchSMSClaim() {
 				// j('<td></td>').attr({ class: ["senderAddr",""].join(' ') }).text(row.senderAddr).appendTo(rowss);
 				j(rowss).append('<td><img width="50px" height="50px" src="images/'+row.senderAddr+'.png"/></td>');
 				j('<td></td>').attr({ class: ["smsText",""].join(' ') }).text(row.smsText).appendTo(rowss);
-				j('<td></td>').attr({ class: ["smsAmount",""].join(' ') }).text(row.smsAmount).appendTo(rowss);
+				var amtDecrypted = decryptData(row.smsAmount,secretKey);
+				j('<td></td>').attr({ class: ["smsAmount",""].join(' ') }).text(amtDecrypted).appendTo(rowss);
 				 // j(rowss).append('<td><input type = "text"  id = "amt" value= "'+ smsAmount +'" style = "width: 50px;"/></td>');
 				 j('<td></td>').attr({ class: ["smsId","displayNone"].join(' ') }).text(row.smsId).appendTo(rowss);
 				  j('<td></td>').attr({ class: ["sender","displayNone"].join(' ') }).text(row.senderAddr).appendTo(rowss);
@@ -2404,7 +2424,7 @@ function synchronizeWhiteListMasterData() {
 	var allowedWordsList = "";
 	if (mydb) {
 		j.ajax({
-			url: window.localStorage.getItem("urlPath")+"SyncWhiteListMasterWebService",
+		  url: window.localStorage.getItem("urlPath")+"SyncWhiteListMasterWebService?fe720djlvd="+keyToSend,
 			type: 'POST',
 			dataType: 'json',
 			crossDomain: true,
@@ -2484,4 +2504,68 @@ function synchronizeWhiteListMasterData() {
 
         function onFail(message) {
     alert('Failed because: ' + message);
+}
+
+function encryptDataForUrl(jsontoEncrypt,secretKey){
+	var encryptDetailsString = {};
+	var encryptDetailsArray = new Array();
+	Object.keys(jsontoEncrypt).forEach(function(key) {
+		var toBeEncrypted = jsontoEncrypt[key];
+		var encrypted = CryptoJS.AES.encrypt(toBeEncrypted,secretKey); 
+		var ivHex = encrypted.iv.toString();
+		var ivSize = encrypted.algorithm.ivSize; 
+		var keySize = encrypted.algorithm.keySize;
+		var keyHex = encrypted.key.toString();
+		var saltHex = encrypted.salt.toString(); 
+		var openSslFormattedCipherTextString = encrypted.toString();
+		var cipherTextHex = encrypted.ciphertext.toString(); 
+		var encryptedValue=ivHex+'_'+ivSize+'_'+keySize+'_'+keyHex+'_'+saltHex+'_'+openSslFormattedCipherTextString+'_'+cipherTextHex;
+		encryptDetailsArray.push(encryptedValue);
+	})
+	encryptDetailsString = {"userName":encryptDetailsArray[0],"mobilePlatform":encryptDetailsArray[1],"appType":encryptDetailsArray[2]};
+	return encryptDetailsString;
+}
+
+function encryptDataForLogin(jsontoEncrypt,secretKey){
+	var encryptDetailsString = {};
+	var encryptDetailsArray = new Array();
+	Object.keys(jsontoEncrypt).forEach(function(key) {
+		var toBeEncrypted = jsontoEncrypt[key];
+		var encrypted = CryptoJS.AES.encrypt(toBeEncrypted,secretKey); 
+		var ivHex = encrypted.iv.toString();
+		var ivSize = encrypted.algorithm.ivSize; 
+		var keySize = encrypted.algorithm.keySize;
+		var keyHex = encrypted.key.toString();
+		var saltHex = encrypted.salt.toString(); 
+		var openSslFormattedCipherTextString = encrypted.toString();
+		var cipherTextHex = encrypted.ciphertext.toString(); 
+		var encryptedValue=ivHex+'_'+ivSize+'_'+keySize+'_'+keyHex+'_'+saltHex+'_'+openSslFormattedCipherTextString+'_'+cipherTextHex;
+		encryptDetailsArray.push(encryptedValue);
+	})
+	encryptDetailsString = {"user":encryptDetailsArray[0],"pass":encryptDetailsArray[1]};
+	return encryptDetailsString;
+}
+
+function encryptDataForJSON(data){
+	var encrypted = CryptoJS.AES.encrypt(data,secretKey); 
+	var ivHex = encrypted.iv.toString();
+	var ivSize = encrypted.algorithm.ivSize; 
+	var keySize = encrypted.algorithm.keySize;
+	var keyHex = encrypted.key.toString();
+	var saltHex = encrypted.salt.toString(); 
+	var openSslFormattedCipherTextString = encrypted.toString();
+	var cipherTextHex = encrypted.ciphertext.toString(); 
+	var encryptedValue=ivHex+'_'+ivSize+'_'+keySize+'_'+keyHex+'_'+saltHex+'_'+openSslFormattedCipherTextString+'_'+cipherTextHex;	    
+	return encryptedValue;
+}
+
+function encryptData(messageToencrypt,secretkey){
+	var encryptedMessage = CryptoJS.AES.encrypt(messageToencrypt, secretkey);
+	return encryptedMessage.toString();
+}
+
+function decryptData(encryptedMessage ,secretkey){
+	var decryptedBytes = CryptoJS.AES.decrypt(encryptedMessage, secretkey);
+	var decryptedMessage = decryptedBytes.toString(CryptoJS.enc.Utf8);
+	return decryptedMessage;
 }
