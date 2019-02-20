@@ -43,6 +43,7 @@ document.addEventListener("deviceready",loaded,false);
 
 function login()
    {
+	   alert("in login")
    	if(document.getElementById("userName")!=null){
     var userName = document.getElementById("userName");
 	}else if(document.getElementById("userName")!=null){
@@ -53,10 +54,12 @@ function login()
     jsonToBeSend["user"] = userName.value;
     jsonToBeSend["pass"] = password.value;
     jsonToBeSendEncrypted = encryptDataForLogin(jsonToBeSend,secretKey);
+	  alert("jsonToBeSendEncrypted:"+jsonToBeSendEncrypted);
     keyToSend =encryptDataForJSON(jsonToBeSend["user"]);
 	passToSend = encryptDataForJSON(jsonToBeSend["pass"]);
 	//setUrlPathLocalStorage(urlPath);
 	urlPath=window.localStorage.getItem("urlPath");
+	   alert("urlPAth:"+urlPath);
 	j('#loading').show();
     j.ajax({
          url: urlPath+"LoginWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
@@ -133,18 +136,21 @@ function login()
 }
  
 function commanLogin(){
+	alert("in commanLogin");
  	var userName = document.getElementById("userName");
  	var userNameValue = userName.value; 
  	var domainName = userNameValue.split('@')[1];
+	alert("domainName:"+domainName);
 	 var jsonToDomainNameSend = new Object();
 	 var jsonToDomainNameSendEncrypted = new Object();
 	jsonToDomainNameSend["userName"] = domainName;
-	//jsonToDomainNameSend["mobilePlatform"] = device.platform;
-	jsonToDomainNameSend["mobilePlatform"] = "Android";
+	jsonToDomainNameSend["mobilePlatform"] = device.platform;
+	//jsonToDomainNameSend["mobilePlatform"] = "Android";
 	jsonToDomainNameSend["appType"] = "NEXGEN_EXPENZING_TNE_APP";
 	jsonToDomainNameSendEncrypted = encryptDataForUrl(jsonToDomainNameSend,secretKey);
   	//var res=JSON.stringify(jsonToDomainNameSend);
 	var requestPath = WebServicePath;
+	alert("webservice ":+requestPath);
 	j.ajax({
          url: requestPath,
          type: 'POST',
@@ -154,14 +160,17 @@ function commanLogin(){
          data: JSON.stringify(jsonToDomainNameSendEncrypted),
 		 success: function(data) {
          	if (data.status == 'Success'){
+			alert("in success");
          		urlPath = data.message;
          		setUrlPathLocalStorage(urlPath);
          		login();
         	}else if(data.status == 'Failure'){
+			alert("in data failure");
 				successMessage = data.message;
 				document.getElementById("loginErrorMsg").innerHTML = successMessage;
  			   j('#loginErrorMsg').hide().fadeIn('slow').delay(2000).fadeOut('slow');
  			}else{
+				alert("in else");
  				successMessage = data.message;
  				if(successMessage == "" || successMessage == null){
                 alert(window.lang.translate('Please enter correct username or password'));		
