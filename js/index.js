@@ -159,6 +159,7 @@ function commanLogin(){
          crossDomain: true,
          data: JSON.stringify(jsonToDomainNameSendEncrypted),
 		 success: function(data) {
+			 alert("above success");
          	if (data.status == 'Success'){
 			alert("in success");
          		urlPath = data.message;
