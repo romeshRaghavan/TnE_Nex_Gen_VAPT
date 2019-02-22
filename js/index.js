@@ -43,7 +43,6 @@ document.addEventListener("deviceready",loaded,false);
 
 function login()
    {
-	   alert("in login")
    	if(document.getElementById("userName")!=null){
     var userName = document.getElementById("userName");
 	}else if(document.getElementById("userName")!=null){
@@ -59,7 +58,6 @@ function login()
 	passToSend = encryptDataForJSON(jsonToBeSend["pass"]);
 	//setUrlPathLocalStorage(urlPath);
 	urlPath=window.localStorage.getItem("urlPath");
-	   alert("urlPAth:"+urlPath);
 	j('#loading').show();
     j.ajax({
          url: urlPath+"LoginWebService?fe720djlvd="+keyToSend+"&dsfwo82kpo="+passToSend,
@@ -68,8 +66,7 @@ function login()
          crossDomain: true,
          data: JSON.stringify(jsonToBeSendEncrypted),
          success: function(data) {
-         	if (data.Status == 'Success'){
-                
+         	if (data.Status == 'Success'){              
                 if(data.hasOwnProperty('multiLangInMobile') && data.multiLangInMobile != null &&
                    data.multiLangInMobile){
                        	var headerBackBtn=defaultPagePath+'withoutBckBtn.html';
@@ -136,11 +133,9 @@ function login()
 }
  
 function commanLogin(){
-	alert("in commanLogin");
  	var userName = document.getElementById("userName");
  	var userNameValue = userName.value; 
  	var domainName = userNameValue.split('@')[1];
-	alert("domainName:"+domainName);
 	 var jsonToDomainNameSend = new Object();
 	 var jsonToDomainNameSendEncrypted = new Object();
 	jsonToDomainNameSend["userName"] = domainName;
